@@ -19,23 +19,19 @@ CUSTOM_FUNC_NAME = 'custom_function'
 MAX_CONTEXT_LINES_TO_SHOW = 10
 
 
-def parse_setup_args():
-    '''
-    # 解析命令行参数
-    :return:
-    '''
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=8073)
-    args = parser.parse_args()
-    return args
+import configparser
 
+def read_config():
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    return config
 
 def create_ui_and_launch(args):
-    '''
-    # 创建用户界面并启动
-    :param args:
-    :return:
-    '''
+    config = read_config()
+    default_api_type = 'aistudio'
+    default_ak = config.get("erniebot", "access_token")
+    default_sk = config.get("erniebot", "access_token")
+
     with gr.Blocks(
             title="ERNIE Bot SDK Function Calling Demo",
             theme=gr.themes.Soft(
@@ -47,6 +43,48 @@ def create_ui_and_launch(args):
         api_open=False, concurrency_count=8).launch(
             server_name="0.0.0.0", server_port=args.port)
 
+    # 在 create_components 函数中：
+    access_key = gr.Textbox(
+        label="AK",
+        info="用于访问后端平台的API key或access key ID",
+        type='password',
+        value=default_ak,
+        visible=(default_api_type == 'aistudio'))
+    secret_key = gr.Textbox(
+        label="SK",
+        info="用于访问后端平台的secret key或secret access key",
+        type='password',
+        value=default_sk,
+        visible=(default_api_type == 'aistudio'))
+
+def parse_setup_args():
+    '''
+    # 解析命令行参数
+    :return:
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=8073)
+    args = parser.parse_args()
+    return args
+
+
+# def create_ui_and_launch(args):
+#     '''
+#     # 创建用户界面并启动
+#     :param args:
+#     :return:
+#     '''
+#     with gr.Blocks(
+#             title="ERNIE Bot SDK Function Calling Demo",
+#             theme=gr.themes.Soft(
+#                 spacing_size='sm', text_size='md')) as block:
+#         gr.Markdown("# ChatBot demo")
+#         create_components(functions=get_predefined_functions())
+#
+#     block.queue(
+#         api_open=False, concurrency_count=8).launch(
+#             server_name="0.0.0.0", server_port=args.port)
+
 
 def create_components(functions):
     '''
@@ -57,9 +95,13 @@ def create_components(functions):
     func_name_list = list(map(operator.attrgetter('name'), functions))
     name2function = collections.OrderedDict(zip(func_name_list, functions))
     default_state = {'name2function': name2function, 'context': []}
-    default_api_type = 'qianfan'
+    default_api_type = 'aistudio'
     default_model = 'ernie-bot'
-
+    config = read_config()
+    default_api_type = 'aistudio'
+    default_ak = config.get("erniebot", "access_token")
+    default_sk = config.get("erniebot", "access_token")
+    default_access_token = config.get("erniebot", "access_token")
     state = gr.State(value=default_state)
     auth_state = gr.State(value={
         'api_type': default_api_type,
@@ -78,7 +120,8 @@ def create_components(functions):
                                 label="API Type",
                                 info=f"提供对话能力的后端平台",
                                 value=default_api_type,
-                                choices=['qianfan', 'aistudio'])
+                                choices=['qianfan', 'aistudio'],
+                                default=default_api_type)
                             access_key = gr.Textbox(
                                 label="AK",
                                 info="用于访问后端平台的API key或access key ID",
@@ -92,7 +135,9 @@ def create_components(functions):
                             access_token = gr.Textbox(
                                 label="Access Token",
                                 info="用于访问后端平台的access token",
-                                type='password')
+                                type='password',
+                                default=default_access_token,
+                            )
                             ernie_model = gr.Dropdown(
                                 label="Model",
                                 info=f"模型类型",
