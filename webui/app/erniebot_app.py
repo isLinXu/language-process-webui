@@ -2,6 +2,9 @@
 import configparser
 import erniebot
 import gradio as gr
+import warnings
+
+warnings.filterwarnings("ignore")
 
 # 从配置文件中读取 access_token
 config = configparser.ConfigParser()
@@ -11,7 +14,6 @@ access_token = config.get("erniebot", "access_token")
 # 设置认证参数
 erniebot.api_type = "aistudio"
 erniebot.access_token = access_token
-
 
 # 定义与 Ernie 机器人的对话函数
 def chat_with_erniebot(model, user_input):
@@ -43,4 +45,4 @@ iface = gr.Interface(
 )
 
 # 启动 Gradio 界面
-iface.launch()
+iface.launch(share=True)
