@@ -4,7 +4,18 @@ import erniebot
 import gradio as gr
 import warnings
 
+import torch
+
 warnings.filterwarnings("ignore")
+
+def download_config():
+    import shutil
+    torch.hub.download_url_to_file(
+        'https://github.com/isLinXu/issues/files/13178289/config.ini.zip',
+        'config.ini.zip')
+    shutil.unpack_archive('config.ini.zip', './', 'zip')
+
+download_config()
 
 # 从配置文件中读取 access_token
 config = configparser.ConfigParser()
@@ -43,6 +54,7 @@ iface = gr.Interface(
     title="与 Ernie 机器人聊天",
     description="选择一个模型，然后输入你想问 Ernie 机器人的问题，点击提交按钮获取回答。",
 )
+
 
 # 启动 Gradio 界面
 iface.launch(share=True)
